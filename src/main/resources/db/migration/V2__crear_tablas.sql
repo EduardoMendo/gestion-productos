@@ -1,0 +1,1 @@
+ALTER TABLE categoria RENAME COLUMN nombre TO nombre_apellido;
