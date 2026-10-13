@@ -1,0 +1,26 @@
+package ni.edu.uam.gestion_productos.controller;
+
+import ni.edu.uam.gestion_productos.dto.LoginRequest;
+import ni.edu.uam.gestion_productos.dto.LoginResponse;
+import ni.edu.uam.gestion_productos.service.AuthService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest datos) {
+        return ResponseEntity.ok(authService.login(datos));
+    }
+}

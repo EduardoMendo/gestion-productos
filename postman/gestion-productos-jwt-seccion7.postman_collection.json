@@ -1,0 +1,189 @@
+{
+  "info": {
+    "name": "NicaMarket - JWT Seccion 7 (pruebas de la guia)",
+    "description": "Ejecutar en orden (01 a 11). Cubre las 8 pruebas de la tabla de la seccion 7. Los logins guardan los tokens en variables. Antes de exportar, deja vacias adminToken y userToken.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "adminToken", "value": "" },
+    { "key": "userToken", "value": "" },
+    { "key": "nuevoProductoId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 [Prueba 1] GET saludo publico SIN token -> 200",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/publico/saludo", "host": ["{{baseUrl}}"], "path": ["api", "publico", "saludo"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 200', () => pm.response.to.have.status(200));",
+          "pm.test('Mensaje de la API', () => pm.expect(pm.response.json().mensaje).to.include('operativa'));"
+        ] } }
+      ]
+    },
+    {
+      "name": "02 [Prueba 2] POST login ADMIN (credenciales validas) -> 200 + JWT",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"Admin123!\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 200', () => pm.response.to.have.status(200));",
+          "const body = pm.response.json();",
+          "pm.test('Devuelve token Bearer', () => {",
+          "  pm.expect(body.token).to.be.a('string').and.not.empty;",
+          "  pm.expect(body.type).to.eql('Bearer');",
+          "});",
+          "pm.collectionVariables.set('adminToken', body.token);"
+        ] } }
+      ]
+    },
+    {
+      "name": "03 [Prueba 2] POST login USER operador (credenciales validas) -> 200 + JWT",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n    \"username\": \"operador\",\n    \"password\": \"Operador123!\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 200', () => pm.response.to.have.status(200));",
+          "const body = pm.response.json();",
+          "pm.test('Devuelve token Bearer', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+          "pm.collectionVariables.set('userToken', body.token);"
+        ] } }
+      ]
+    },
+    {
+      "name": "04 [Prueba 3] POST login contrasena incorrecta -> 401",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"incorrecta\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 401 Unauthorized', () => pm.response.to.have.status(401));"
+        ] } }
+      ]
+    },
+    {
+      "name": "05 [Prueba 4] GET productos SIN token -> 401",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/productos", "host": ["{{baseUrl}}"], "path": ["api", "productos"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 401 Unauthorized', () => pm.response.to.have.status(401));"
+        ] } }
+      ]
+    },
+    {
+      "name": "06 [Prueba 5] GET productos token USER -> 200",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{userToken}}", "type": "string" }] },
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/productos", "host": ["{{baseUrl}}"], "path": ["api", "productos"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 200', () => pm.response.to.have.status(200));",
+          "pm.test('Devuelve una lista', () => pm.expect(pm.response.json()).to.be.an('array'));"
+        ] } }
+      ]
+    },
+    {
+      "name": "07 [Prueba 6] POST productos token USER -> 403",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{userToken}}", "type": "string" }] },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n    \"codigo\": \"SEC-USER\",\n    \"nombre\": \"No debe crearse\",\n    \"precioVenta\": 10.00,\n    \"existencia\": 1,\n    \"categoriaId\": 1\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/productos", "host": ["{{baseUrl}}"], "path": ["api", "productos"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 403 Forbidden', () => pm.response.to.have.status(403));"
+        ] } }
+      ]
+    },
+    {
+      "name": "08 [Prueba 7] GET productos token MODIFICADO -> 401",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}abc" }],
+        "url": { "raw": "{{baseUrl}}/api/productos", "host": ["{{baseUrl}}"], "path": ["api", "productos"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 401 Unauthorized', () => pm.response.to.have.status(401));"
+        ] } }
+      ]
+    },
+    {
+      "name": "09 [Prueba 8] POST productos token ADMIN -> permiso concedido (200)",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n    \"codigo\": \"SEC-{{$timestamp}}\",\n    \"nombre\": \"Producto de seguridad\",\n    \"precioVenta\": 10.50,\n    \"existencia\": 1,\n    \"categoriaId\": 1\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/productos", "host": ["{{baseUrl}}"], "path": ["api", "productos"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Autorizado (no es 401 ni 403)', () => pm.expect([401, 403]).to.not.include(pm.response.code));",
+          "pm.test('Status 200', () => pm.response.to.have.status(200));",
+          "const body = pm.response.json();",
+          "pm.test('Producto creado con id', () => pm.expect(body.id).to.be.a('number'));",
+          "pm.collectionVariables.set('nuevoProductoId', body.id);"
+        ] } }
+      ]
+    },
+    {
+      "name": "10 [Extra] DELETE producto token USER -> 403",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{userToken}}", "type": "string" }] },
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/productos/{{nuevoProductoId}}", "host": ["{{baseUrl}}"], "path": ["api", "productos", "{{nuevoProductoId}}"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 403 Forbidden', () => pm.response.to.have.status(403));"
+        ] } }
+      ]
+    },
+    {
+      "name": "11 [Limpieza] DELETE producto token ADMIN -> 204",
+      "request": {
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/productos/{{nuevoProductoId}}", "host": ["{{baseUrl}}"], "path": ["api", "productos", "{{nuevoProductoId}}"] }
+      },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+        ] } }
+      ]
+    }
+  ]
+}

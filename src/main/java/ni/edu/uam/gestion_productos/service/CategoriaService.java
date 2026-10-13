@@ -5,6 +5,7 @@ import ni.edu.uam.gestion_productos.entity.Categoria;
 import ni.edu.uam.gestion_productos.repository.CategoriaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -33,5 +34,24 @@ public class CategoriaService {
         categoria.setNombre(dto.getNombre().trim());
         categoria.setActiva(dto.getActiva() != null ? dto.getActiva() : true);
         return categoriaRepository.save(categoria);
+    }
+
+    public Categoria actualizar(Integer id, CategoriaRequestDTO dto) {
+        Categoria categoria = buscarPorId(id);
+        categoria.setNombre(dto.getNombre().trim());
+        if (dto.getActiva() != null) {
+            categoria.setActiva(dto.getActiva());
+        }
+        return categoriaRepository.save(categoria);
+    }
+
+    @Transactional
+    public void eliminar(Integer id) {
+        Categoria categoria = buscarPorId(id);
+        if (!categoria.getProductos().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "No se puede eliminar: la categoría tiene productos asociados");
+        }
+        categoriaRepository.delete(categoria);
     }
 }
